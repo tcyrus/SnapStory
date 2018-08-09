@@ -33,43 +33,56 @@ def download(username):
     data = response.json()
     print("\033[92m[+] Fetched data\033[0m")
 
-    print("\33[93m[!] Downloading from",
-        str(data["story"]["metadata"]["title"]),
-        str(data["story"]["metadata"]["emoji"]),
-        "(\033[91m{}\33[93m)\33[0m".format(username))
-
     # Making a directory with given username
     # to store the images of that user
     os.makedirs(username, exist_ok=True)
 
-    for media in data["story"]["snaps"]:
-        file_url = media["media"]["mediaUrl"]
+    story_arr = data.get("story").get("snaps") # Using dict.get() will return None when there are no snaps instead of throwing a KeyError
 
-        if media["media"]["type"] == "IMAGE":
-            file_ext = ".jpg"
+    if story_arr:
+        print("\33[93m[!] Downloading from",
+            str(data["story"]["metadata"]["title"]),
+            str(data["story"]["metadata"]["emoji"]),
+            "(\033[91m{}\33[93m)\33[0m".format(username))
+        for index, media in enumerate(story_arr):
+            try:
+                file_url = media["media"]["mediaUrl"]
 
-            # This is name of the dir where these types
-            # of files will be stored
-            filetype = "IMAGE"
+                if media["media"]["type"] == "IMAGE":
+                    file_ext = ".jpg"
 
-        elif media["media"]["type"] == "VIDEO":
-            file_ext = ".mp4"
-            filetype = "VIDEO"
+                    # This is name of the dir where these types
+                    # of files will be stored
+                    filetype = "IMAGE"
 
-        elif media["media"]["type"] == "VIDEO_NO_SOUND":
-            file_ext = ".mp4"
-            filetype = "VIDEO_NO_SOUND"
+                elif media["media"]["type"] == "VIDEO":
+                    file_ext = ".mp4"
+                    filetype = "VIDEO"
+
+                elif media["media"]["type"] == "VIDEO_NO_SOUND":
+                    file_ext = ".mp4"
+                    filetype = "VIDEO_NO_SOUND"
 
 
-        dir_name = username+"/"+filetype+"/"
+                dir_name = username+"/"+filetype+"/"
 
-        os.makedirs(dir_name, exist_ok=True)
+                os.makedirs(dir_name, exist_ok=True)
 
-        path = dir_name+str(media["id"])+file_ext
+                path = dir_name+str(media["id"])+file_ext
 
-        urllib.request.urlretrieve(file_url, path)
+                if not os.path.exists(path):
+                    urllib.request.urlretrieve(file_url, path)
+                    print("\033[92m[+] Downloaded file {:d} of {:d}:\033[0m {:s}".format(index+1, len(story_arr), path.replace(dir_name, "")))
+                else:
+                    print("\033[91m[!] File {:d} of {:d} already exists:\033[0m {:s}".format(index+1, len(story_arr), path.replace(dir_name, "")))
+            except KeyError as e:
+                print("\033[91m[-] Could not get file data: \033[0m{:s}".format(str(e)))
+            except KeyboardInterrupt:
+                print("\033[91m[!] Download cancelled")
+                break
 
-        print("\033[92m[+] Downloaded:\033[0m " + path.replace(dir_name, ""))
+    else:
+        print("\033[91m[!] No stories available")
 
 
 def main():
