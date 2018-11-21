@@ -6,7 +6,6 @@ import os
 from time import sleep
 
 
-
 def valid_story(username, singleStory=False):
     """
     Checks if the given username or id
@@ -20,15 +19,10 @@ def valid_story(username, singleStory=False):
     url = url.format(username)
     r = requests.get(url)
 
-    if r.status_code == 200:
-        return True
-
-    else:
-        return False
+    return r.status_code == 200:
 
 
 def download(username, singleStory=False):
-
     if singleStory:
         api = "https://storysharing.snapchat.com/v1/fetch/s:{}?request_origin=ORIGIN_WEB_PLAYER"
     else:
@@ -51,7 +45,6 @@ def download(username, singleStory=False):
         # TYPE_PUBLIC_USER_STORY = Story from a user
         # There are many different story types.
         if story_type == "TYPE_PUBLIC_USER_STORY":
-
             username = data["story"]["id"]
 
             print("\33[93m[!] Downloading from",
@@ -91,7 +84,6 @@ def download(username, singleStory=False):
                     file_ext = ".mp4"
                     filetype = "VIDEO_NO_SOUND"
 
-
                 dir_name = username+"/"+filetype+"/"
 
                 os.makedirs(dir_name, exist_ok=True)
@@ -99,19 +91,17 @@ def download(username, singleStory=False):
                 path = dir_name+str(media["id"])+file_ext
 
                 if not os.path.exists(path):
-
                     urllib.request.urlretrieve(file_url, path)
                     print("\033[92m[+] Downloaded file {:d} of {:d}:\033[0m {:s}".format(index+1, len(story_arr), path.replace(dir_name, "")))
-                    
+
                     # We need a small pause or else we will get a ConnectionResetError
                     sleep(0.3)
-                
                 else:
                     print("\033[91m[!] File {:d} of {:d} already exists:\033[0m {:s}".format(index+1, len(story_arr), path.replace(dir_name, "")))
-            
+
             except KeyError as e:
                 print("\033[91m[-] Could not get file data: \033[0m{:s}".format(str(e)))
-            
+
             except KeyboardInterrupt:
                 print("\033[91m[!] Download cancelled\033[0m")
                 break
@@ -137,18 +127,15 @@ def main():
         if valid_story(args.username, singleStory=True):
             print("\033[92m[+] Valid story\033[0m")
             download(args.username, singleStory=True)
-
         else:
             print("\033[91m[-] Invalid story\033[0m")
-
-
     else:
         if valid_story(args.username):
             print("\033[92m[+] Valid story\033[0m")
             download(args.username)
-
         else:
             print("\033[91m[-] Invalid story\033[0m")
+
 
 if __name__=="__main__":
     main()
